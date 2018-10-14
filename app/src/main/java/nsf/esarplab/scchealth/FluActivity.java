@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
@@ -48,12 +49,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 import dalvik.system.DexClassLoader;
 import nsf.esarplab.bluetoothlibrary.BluetoothSPP;
 import nsf.esarplab.bluetoothlibrary.BluetoothState;
 import nsf.esarplab.bluetoothlibrary.DeviceList;
 
+import static android.R.id.message;
 import static nsf.esarplab.scchealth.R.id.graph1;
 
 public class FluActivity extends AppCompatActivity {
@@ -310,7 +313,14 @@ public class FluActivity extends AppCompatActivity {
         connectScanner.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                try {
+                    writeToLog("Connect button clicked from Flu");
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 bt.setDeviceTarget(BluetoothState.DEVICE_OTHER);
+
             /*
 			if(bt.getServiceState() == BluetoothState.STATE_CONNECTED)
     			bt.disconnect();*/
@@ -323,7 +333,13 @@ public class FluActivity extends AppCompatActivity {
         dispResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               tempAlgorithm(v);
+                try {
+                    writeToLog("Compute button clicked from Flu");
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                tempAlgorithm(v);
 
             }
         });
@@ -430,6 +446,12 @@ public class FluActivity extends AppCompatActivity {
 
             public void onDeviceConnectionFailed() {
                 connectionRead.setText("Status : Connection failed");
+                try {
+                    writeToLog("Connect Failed from Flu");
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 AlertDialog.Builder builder = new AlertDialog.Builder(FluActivity.this);
                 builder.setTitle("Connection Error");
                 builder.setMessage("Retry to connect");
@@ -455,6 +477,12 @@ public class FluActivity extends AppCompatActivity {
             public void onDeviceConnected(String name, String address) {
                 connectionRead.setText("Status : Connected to " + name);
                 connected=true;
+                try {
+                    writeToLog("Connect success using Flu ");
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 menu.clear();
                 getMenuInflater().inflate(R.menu.menu_disconnection, menu);
             }
@@ -466,6 +494,8 @@ public class FluActivity extends AppCompatActivity {
      */
     private void insertTemp() {
         // Read from input fields
+        Random rand = new Random();
+        eoiValue=String.valueOf(rand.nextInt(95) + 12);
         // Use trim to eliminate leading or trailing white space
         String nameString = mNameText.getText().toString().trim();
         String dateString = mDateTime.getText().toString().trim();
@@ -485,7 +515,8 @@ public class FluActivity extends AppCompatActivity {
         values.put(TempContract.TempEntry.COLUMN_PATIENT_NAME, nameString);
         values.put(TempContract.TempEntry.COLUMN_DATE_TIME, dateString);
         values.put(TempContract.TempEntry.COLUMN_TEMP_VALUE, sTemperature);
-        values.put(TempContract.TempEntry.COLUMN_EOI_RATING, sEOI);
+        values.put(TempContract.TempEntry.COLUMN_EOI_RATING, eoiString);
+        //values.put(TempContract.TempEntry.COLUMN_EOI_RATING, sEOI);
 
         // Insert a new row  in the database, returning the ID of that new row.
         long newRowId = db.insert(TempContract.TempEntry.TABLE_NAME, null, values);
@@ -589,9 +620,20 @@ public class FluActivity extends AppCompatActivity {
                 }
             case R.id.action_sms:
                 String messageToSend = "EOI:" + eoiValue;
-                String number = "9015157371";
+                //String number = "9015157371";
+                String number = "9018340057";
 
                 SmsManager.getDefault().sendTextMessage(number, null, messageToSend, null, null);
+                //finish();
+                return true;
+
+            case R.id.action_email:
+                String subject = "Patient EOI info";
+                Intent intentEmail = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
+                        "mailto","esarplab@gmail.com", null));
+                intentEmail.putExtra(Intent.EXTRA_SUBJECT, subject);
+                intentEmail.putExtra(Intent.EXTRA_TEXT, message);
+                startActivity(Intent.createChooser(intentEmail, "Choose an Email client :"));
                 //finish();
                 return true;
             case R.id.action_history:
@@ -665,8 +707,15 @@ public class FluActivity extends AppCompatActivity {
         test.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 {
+                    try {
+                        writeToLog("Collect button clicked from Flu");
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                     if (connected) {
                         bt.send("OS", true);
+                        fileSeq++;
                         graph.setVisibility(View.VISIBLE);
                         // progress indicator
                         progressDialog = new ProgressDialog(FluActivity.this,
@@ -966,7 +1015,7 @@ public class FluActivity extends AppCompatActivity {
         arr_trans.clear();
         arr_processed1.clear();
         arr_processed2.clear();
-        fileSeq++;
+
         timeKey = false;
         diseaseKey = false;
         sensorKey = false;
@@ -997,7 +1046,7 @@ public class FluActivity extends AppCompatActivity {
     public void writeToCsv(String x) throws IOException {
 
         Calendar c = Calendar.getInstance();
-        File folder = new File(Environment.getExternalStorageDirectory() + "/project");
+        File folder = new File(Environment.getExternalStorageDirectory() + "/SCChealth");
         boolean success = true;
         if (!folder.exists()) {
             success = folder.mkdir();
@@ -1015,6 +1064,31 @@ public class FluActivity extends AppCompatActivity {
 
         }
     }
+
+
+    //write to log file
+    public void writeToLog(String x) throws IOException {
+
+        Calendar c = Calendar.getInstance();
+        File folder = new File(Environment.getExternalStorageDirectory() + "/SCChealth");
+        boolean success = true;
+        if (!folder.exists()) {
+            success = folder.mkdir();
+        }
+        if (success) {
+            // Do something on success
+            String fileName = "EventLog" + ".csv";
+            String csv = "/storage/emulated/0/SCChealth/"+fileName;
+            FileWriter file_writer = new FileWriter(csv, true);
+            String s = c.get(Calendar.YEAR) + "," + (c.get(Calendar.MONTH) + 1) + "," + c.get(Calendar.DATE) + "," + c.get(Calendar.HOUR) + "," + c.get(Calendar.MINUTE) + "," + c.get(Calendar.SECOND) + "," + c.get(Calendar.MILLISECOND) + "," + x + "\n";
+
+            file_writer.append(s);
+            file_writer.close();
+
+
+        }
+    }
+
 
     public String dexcallFluSeverity(Integer temp) {
         try {

@@ -201,4 +201,24 @@
         \n\n<b>Arrhythmia</b>\nAn arrhythmia is a disorder of the heart rate (pulse) or heart rhythm. The heart can beat too fast (tachycardia), too fast (tachycardia), too slow (bradycardia), or irregularly.An arrhythmia can be harmless, a sign of other heart problems, or an immediate danger to your health.\nRef: US National Library of Medicine"
     </string>
     <string name="inst_oss">\n2. Turn on <b>Scanner</b> and place the Scanner above the sensor properly.\n3. Connect the Smartphone app with the scanner and collect data.\n4. Click Refresh button and collect data for Temperature,SpO2, ECG/Heart rate and respiration sensor one by one.\n5. Click on Compute to see the result.\n6. If a sensor is not available just skip that disease.</string>
+    <string name="ble_not_supported">BLE is not supported</string>
+    <string name="label_data">Data:</string>
+    <string name="label_device_address">Device address:</string>
+    <string name="label_state">State:</string>
+    <string name="no_data">No data</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="title_devices">BLE Device Scan</string>
+    <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
+
+    <string name="unknown_device">Unknown device</string>
+    <string name="unknown_characteristic">Unknown characteristic</string>
+    <string name="unknown_service">Unknown service</string>
+
+    <!-- Menu items -->
+    <string name="menu_connect_ble">Connect</string>
+    <string name="menu_disconnect_ble">Disconnect</string>
+    <string name="menu_scan_ble">Scan</string>
+    <string name="menu_stop_ble">Stop</string>
+
 </resources>

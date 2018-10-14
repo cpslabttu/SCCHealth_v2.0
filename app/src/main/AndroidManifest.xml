@@ -25,9 +25,9 @@
         android:allowBackup="true"
         android:icon="@drawable/flogo"
         android:label="@string/app_name"
-        android:theme="@style/Theme.AppCompat"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat">
         <activity android:name=".LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,78 +35,104 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".FluAlgorithm"
+        <activity
+            android:name=".FluAlgorithm"
             android:label="Test Methods"
-            android:parentActivityName=".FluActivity"/>
-        <activity android:name=".About"
+            android:parentActivityName=".FluActivity" />
+        <activity
+            android:name=".About"
             android:label="@string/category_about"
-            android:parentActivityName=".HomeActivity"/>
-        <activity android:name=".ArrhythmiaActivity"
+            android:parentActivityName=".HomeActivity" />
+        <activity
+            android:name=".ArrhythmiaActivity"
             android:label="Arrhythmia"
-            android:parentActivityName=".LabActivity"/>
-        <activity android:name=".AsthmaActivity"
+            android:parentActivityName=".LabActivity" />
+        <activity
+            android:name=".AsthmaActivity"
             android:label="COPD"
-            android:parentActivityName=".LabActivity"/>
+            android:parentActivityName=".LabActivity" />
         <activity android:name=".AutoConnectActivity" />
-        <activity android:name=".BluetoothActivity"
+        <activity
+            android:name=".BluetoothActivity"
             android:label="Bluetooth Settings"
-            android:parentActivityName=".BluetoothActivity"/>
-        <activity android:name=".BluetoothPair"
+            android:parentActivityName=".BluetoothActivity" />
+        <activity
+            android:name=".BluetoothPair"
             android:label="Bluetooth"
-            android:parentActivityName=".GeneralSettingsActivity"/>
+            android:parentActivityName=".GeneralSettingsActivity" />
         <activity android:name=".CloudActivity" />
         <activity android:name=".ConnectionSettingsActivity" />
-        <activity android:name=".DB_login"
+        <activity
+            android:name=".DB_login"
             android:label="Settings Login"
-            android:parentActivityName=".HomeActivity"/>
+            android:parentActivityName=".HomeActivity" />
         <activity android:name=".DeviceListActivity" />
-        <activity android:name=".DisplayContact"
+        <activity
+            android:name=".DisplayContact"
             android:label="Details"
-            android:parentActivityName=".ProfileActivity"/>
-        <activity android:name=".FluActivity"
+            android:parentActivityName=".ProfileActivity" />
+        <activity
+            android:name=".FluActivity"
             android:label="Flu"
-            android:parentActivityName=".LabActivity"/>
-        <activity android:name=".FluMethods"
+            android:parentActivityName=".LabActivity" />
+        <activity
+            android:name=".FluMethods"
             android:label="Ranking Methods"
-            android:parentActivityName=".FluActivity"/>
-        <activity android:name=".GeneralSettingsActivity"
+            android:parentActivityName=".FluActivity" />
+        <activity
+            android:name=".GeneralSettingsActivity"
             android:label="Settings"
-            android:parentActivityName=".HomeActivity"/>
+            android:parentActivityName=".HomeActivity" />
         <activity android:name=".GraphActivity" />
-        <activity android:name=".HomeActivity"
+        <activity
+            android:name=".HomeActivity"
             android:label="Facilities"
-            android:parentActivityName=".WelcomeActivity"/>
-        <activity android:name=".LabActivity"
+            android:parentActivityName=".WelcomeActivity" />
+        <activity
+            android:name=".LabActivity"
             android:label="Diagnostics"
-            android:parentActivityName=".HomeActivity"/>
+            android:parentActivityName=".HomeActivity" />
         <activity android:name=".ListenerActivity" />
-        <activity android:name=".oneStopService"
+        <activity
+            android:name=".oneStopService"
             android:label="OSS"
-            android:parentActivityName=".LabActivity"/>
-        <activity android:name=".ProfileActivity"
+            android:parentActivityName=".LabActivity" />
+        <activity
+            android:name=".ProfileActivity"
             android:label="User Profiles"
-            android:parentActivityName=".GeneralSettingsActivity"/>
-        <activity android:name=".SettingsActivity"
+            android:parentActivityName=".GeneralSettingsActivity" />
+        <activity
+            android:name=".SettingsActivity"
             android:label="Settings"
-            android:parentActivityName=".HomeActivity"/>
+            android:parentActivityName=".HomeActivity" />
         <activity android:name=".ShowWebChart" />
         <activity android:name=".SignupActivity" />
         <activity android:name=".SimpleActivity" />
-        <activity android:name=".SleepApnea"
+        <activity
+            android:name=".SleepApnea"
             android:label="Sleep Apnea"
-            android:parentActivityName=".LabActivity"/>
-        <activity android:name=".Temp_HistoryActivity"
+            android:parentActivityName=".LabActivity" />
+        <activity
+            android:name=".Temp_HistoryActivity"
             android:label="Temperature Log"
-            android:parentActivityName=".FluActivity"/>
-        <activity android:name=".TerminalActivity"
+            android:parentActivityName=".FluActivity" />
+        <activity
+            android:name=".TerminalActivity"
             android:label="Bluetooth Terminal"
-            android:parentActivityName=".BluetoothActivity"/>
+            android:parentActivityName=".BluetoothActivity" />
         <activity android:name=".TestActivity" />
         <activity android:name=".WelcomeActivity" />
-        <activity android:name=".WifiActivity"
+        <activity
+            android:name=".WifiActivity"
             android:label="Manual Sharing"
             android:parentActivityName=".GeneralSettingsActivity" />
+
         <receiver android:name=".Notification_receiver" />
+
+        <activity android:name=".bleDeviceScan" />
+        <activity android:name=".copdActivity"
+            android:parentActivityName=".LabActivity"
+            android:label="COPD"/>
     </application>
 
 </manifest>

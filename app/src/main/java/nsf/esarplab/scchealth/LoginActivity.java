@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -12,6 +13,11 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Calendar;
 
 public class LoginActivity extends FragmentActivity {
     Button btnSignIn, btnFragment;
@@ -58,7 +64,12 @@ public class LoginActivity extends FragmentActivity {
     // Methos to handleClick Event of Sign In Button
     public void signIn(View V)
     {
-
+        try {
+            writeToLog("Login attempted");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
         // get the References of views
         final  EditText editTextUserName=(EditText)findViewById(R.id.editText);
@@ -86,9 +97,21 @@ public class LoginActivity extends FragmentActivity {
             startActivity(welcomeIntent);
 
             Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
+            try {
+                writeToLog("Login successful");
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
 
         } else {
             Toast.makeText(LoginActivity.this, "User Name or Password does not match", Toast.LENGTH_LONG).show();
+            try {
+                writeToLog("Login failed");
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
     }
 
@@ -105,6 +128,27 @@ public class LoginActivity extends FragmentActivity {
         finish();
     }
 
+    //write to log file
+    public void writeToLog(String x) throws IOException {
 
+        Calendar c = Calendar.getInstance();
+        File folder = new File(Environment.getExternalStorageDirectory() + "/SCChealth");
+        boolean success = true;
+        if (!folder.exists()) {
+            success = folder.mkdir();
+        }
+        if (success) {
+            // Do something on success
+            String fileName = "EventLog" + ".csv";
+            String csv = "/storage/emulated/0/SCChealth/"+fileName;
+            FileWriter file_writer = new FileWriter(csv, true);
+            String s = c.get(Calendar.YEAR) + "," + (c.get(Calendar.MONTH) + 1) + "," + c.get(Calendar.DATE) + "," + c.get(Calendar.HOUR) + "," + c.get(Calendar.MINUTE) + "," + c.get(Calendar.SECOND) + "," + c.get(Calendar.MILLISECOND) + "," + x + "\n";
+
+            file_writer.append(s);
+            file_writer.close();
+
+
+        }
+    }
 
 }

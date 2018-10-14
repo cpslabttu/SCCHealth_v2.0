@@ -31,7 +31,11 @@
 
     <item
         android:id="@+id/action_sms"
-        android:title="Send to Physician"
+        android:title="Sms to Physician"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_email"
+        android:title="email to Physician"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_algorithm"

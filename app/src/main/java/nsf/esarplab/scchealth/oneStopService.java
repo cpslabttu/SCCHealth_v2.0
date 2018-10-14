@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
@@ -73,7 +74,7 @@ public class oneStopService extends AppCompatActivity {
     private boolean timeKeyEC=false;
     private boolean handShake=false;
     private int sensor = 1;
-    private int fileSeq=1;
+    private int fileSeq=0;
     private int sensorNo;
     private String eoiValue,sSeverity;
     double ratingOfEOI = 0.0;
@@ -90,9 +91,10 @@ public class oneStopService extends AppCompatActivity {
     private PopupWindow mPopupWindow;
     private CheckBox ch1,ch2;
     private double temperature=0.0f;
-    private ProgressDialog progressDialog;
+    private ProgressDialog progressDialog, progressDialog2;
     private CountDownTimer Count;
     private boolean failedHandshake;
+    private boolean invalid;
 
 
     @Override
@@ -146,6 +148,8 @@ public class oneStopService extends AppCompatActivity {
         mNameText.setText("\t\t"+Uname);
 
         s = mNameText.getText().toString().trim();
+
+
 
         // color line gradient
 
@@ -246,12 +250,12 @@ public class oneStopService extends AppCompatActivity {
 
                         arr_received.add(val);
                         //Textv.append(Integer.toString(val) + "\n");
-                        try {
+                        /*try {
                             writeToCsv(Integer.toString(val));
                         } catch (IOException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
-                        }
+                        }*/
                         arr_hex.clear();
 
                     }
@@ -354,42 +358,8 @@ public class oneStopService extends AppCompatActivity {
                             }else if (readAscii.equals("8") && sensorKeyEC && diseaseKey) {
                                 bt.send("OK", true);
                                 handShake = true;
-                            }else {AlertDialog.Builder builder = new AlertDialog.Builder(oneStopService.this);
-                                builder.setTitle("Communication Error");
-                                builder.setMessage("Restart Scanner and re-connect");
-
-                                // add the buttons
-                                builder.setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // do something ...
-                                        dialog.dismiss();
-                                        if (bt.getServiceState() == BluetoothState.STATE_CONNECTED)
-                                            bt.disconnect();
-                                        connectScanner.setVisibility(View.VISIBLE);
-                                        sensorDisplay.setVisibility(View.GONE);
-                                        mDisplay.setVisibility(View.GONE);
-                                        collectData.setVisibility(View.GONE);
-                                        dispResult.setVisibility(View.GONE);
-                                        shareResult.setVisibility(View.GONE);
-                                        sensorStatus.setVisibility(View.GONE);
-                                        layoutIntro.setVisibility(View.VISIBLE);
-                                        arr_received.clear();
-                                        handShake = false;
-                                        diseaseKey = false;
-                                        sensorKeyBT = false;
-                                        Count.cancel();
-                                        progressDialog.dismiss();
-                                        failedHandshake=true;
-
-                                    }
-                                });
-                                builder.setNegativeButton("Cancel", null);
-
-                                // create and show the alert dialog
-                                AlertDialog dialog = builder.create();
-                                dialog.show();
-
+                            }else {
+                                failedHandshake=true;
                             }
                         }
                     }
@@ -408,6 +378,12 @@ public class oneStopService extends AppCompatActivity {
 
             public void onDeviceConnectionFailed() {
                 connectionRead.setText("Status : Connection failed");
+                try {
+                    writeToLog("Connect Failed from OSS");
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 connectionRead.setBackgroundColor(Color.parseColor("#D3D3D3"));
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(oneStopService.this);
@@ -435,6 +411,12 @@ public class oneStopService extends AppCompatActivity {
             public void onDeviceConnected(String name, String address) {
                 connectionRead.setText("Status : Connected to " + name);
                 connectionRead.setBackgroundColor(Color.parseColor("#228B22"));
+                try {
+                    writeToLog("Connect success using OSS ");
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 menu.clear();
                 getMenuInflater().inflate(R.menu.menu_disconnection, menu);
                 sensorDisplay.setVisibility(View.VISIBLE);
@@ -522,6 +504,18 @@ public class oneStopService extends AppCompatActivity {
                     public void onClick(View v) {
                         // TODO Auto-generated method stub
                         popupWindow.dismiss();
+                    }
+                });
+
+                // Find the View that shows the video Demo
+                Button videoDemo = (Button) popupView.findViewById(R.id.video);
+                // Set a click listener on that View
+                videoDemo.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Uri uri = Uri.parse("https://www.youtube.com/playlist?list=PLO1huaFZzTzNaBK5Pbde1GDeGRdCXOhUm"); // missing 'http://' will cause crashed
+                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                        startActivity(intent);
                     }
                 });
 
@@ -650,6 +644,12 @@ public class oneStopService extends AppCompatActivity {
         connectScanner.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                try {
+                    writeToLog("Connect button clicked from OSS");
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 bt.setDeviceTarget(BluetoothState.DEVICE_OTHER);
             /*
 			if(bt.getServiceState() == BluetoothState.STATE_CONNECTED)
@@ -707,6 +707,7 @@ public class oneStopService extends AppCompatActivity {
     			bt.disconnect();*/
             Intent intent = new Intent(getApplicationContext(), DeviceList.class);
             startActivityForResult(intent, BluetoothState.REQUEST_CONNECT_DEVICE);
+
         } else if (id == R.id.menu_disconnect) {
             if (bt.getServiceState() == BluetoothState.STATE_CONNECTED)
                 bt.disconnect();
@@ -817,6 +818,7 @@ public class oneStopService extends AppCompatActivity {
                 bt.setupService();
                 bt.startService(BluetoothState.DEVICE_ANDROID);
                 setup();
+                summarizedOutput();
             } else {
                 Toast.makeText(getApplicationContext()
                         , "BluetoothActivity was not enabled."
@@ -832,10 +834,17 @@ public class oneStopService extends AppCompatActivity {
         collectData.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 {
-
+                    try {
+                        writeToLog("Collect button clicked from OSS");
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    failedHandshake=false;
+                    fileSeq++;
+                    //arr_received.clear();
+                    //arr_respiration.clear();
                     bt.send("OS", true);
-                    arr_received.clear();
-                    arr_respiration.clear();
                     // progress indicator
                     final ProgressDialog progressDialog = new ProgressDialog(oneStopService.this,
                             R.style.AppTheme_Dark_Dialog);
@@ -861,7 +870,43 @@ public class oneStopService extends AppCompatActivity {
                                 sensorStatus.setVisibility(View.VISIBLE);
                                 //statusTemp.setBackgroundColor(Color.parseColor("#4CAF50"));
                             }else if(failedHandshake){
-                                // do nothing
+                                // do something
+                                AlertDialog.Builder builder = new AlertDialog.Builder(oneStopService.this);
+                                builder.setTitle("Communication Error");
+                                builder.setMessage("Restart Scanner and re-connect");
+
+                                // add the buttons
+                                builder.setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // do something ...
+                                        dialog.dismiss();
+                                        if (bt.getServiceState() == BluetoothState.STATE_CONNECTED)
+                                            bt.disconnect();
+                                        connectScanner.setVisibility(View.VISIBLE);
+                                        sensorDisplay.setVisibility(View.GONE);
+                                        mDisplay.setVisibility(View.GONE);
+                                        collectData.setVisibility(View.GONE);
+                                        dispResult.setVisibility(View.GONE);
+                                        shareResult.setVisibility(View.GONE);
+                                        sensorStatus.setVisibility(View.GONE);
+                                        layoutIntro.setVisibility(View.VISIBLE);
+                                        arr_received.clear();
+                                        handShake = false;
+                                        diseaseKey = false;
+                                        sensorKeyBT = false;
+                                        Count.cancel();
+                                        progressDialog.dismiss();
+
+
+                                    }
+                                });
+                                builder.setNegativeButton("Cancel", null);
+
+                                // create and show the alert dialog
+                                AlertDialog dialog = builder.create();
+                                dialog.show();
+
                             }else{
                                 AlertDialog.Builder builder = new AlertDialog.Builder(oneStopService.this);
                                 builder.setTitle("No Communication");
@@ -903,7 +948,7 @@ public class oneStopService extends AppCompatActivity {
                             } else {
                                 statusTemp.setBackgroundColor(Color.parseColor("#000000"));
                                 postStatus.setText("2. Position Sensor properly, Refresh and collect data again");
-                                dispResult.setClickable(false);
+                                //dispResult.setClickable(false);
                             }
                             // after timer delay
                                 /*sensorDisplay.setVisibility(View.GONE);
@@ -935,71 +980,142 @@ public class oneStopService extends AppCompatActivity {
 
 
 
-    @Override
-    public void onStop() {
-        super.onStop();
 
-    }
 
     public void summarizedOutput() {
 
 
         dispResult.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View v) {
                 {
-
+                    try {
+                        writeToLog("Compute button clicked from OSS");
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                     if (handShake) {
 
-                        fluAlgorithm();
-                        sleepapneaAlgorithm();
-                        arrhythmiaAlgorithm();
-                        asthmaAlgorithm();
-                        if(temperature>100) {
-                            LayoutInflater layoutInflater
-                                    = (LayoutInflater) getBaseContext()
-                                    .getSystemService(LAYOUT_INFLATER_SERVICE);
-                            View popupView = layoutInflater.inflate(R.layout.flu_symp, null);
-                            final PopupWindow popupWindow = new PopupWindow(
-                                    popupView,
-                                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                                    ViewGroup.LayoutParams.WRAP_CONTENT);
+                            final ProgressDialog progressDialog2 = new ProgressDialog(oneStopService.this,
+                                    R.style.AppTheme_Dark_Dialog);
+                            progressDialog2.setIndeterminate(true);
+                            progressDialog2.setMessage("Processing data...");
 
-                            Button btnDismiss = (Button) popupView.findViewById(R.id.dismiss);
-                            ch1 = (CheckBox) popupView.findViewById(R.id.checkBox1);
-                            ch2 = (CheckBox) popupView.findViewById(R.id.checkBox2);
-                            btnDismiss.setOnClickListener(new Button.OnClickListener() {
+                            new CountDownTimer(1000, 100) {
+
+                                public void onTick(long millisecondsUntilDone) {
+
+                                    progressDialog2.show();
+                                }
 
                                 @Override
-                                public void onClick(View v) {
-                                    // TODO Auto-generated method stub
-                                    popupWindow.dismiss();
-                                    layout1.setVisibility(View.GONE);
-                                    layoutIntro.setVisibility(View.GONE);
-                                    sensorStatus.setVisibility(View.GONE);
-                                    mDisplay.setVisibility(View.VISIBLE);
-                                    shareResult.setVisibility(View.VISIBLE);
-                                    dispResult.setVisibility(View.GONE);
-                                    fluScreening.setText("Symptomps-Yes");
+                                public void onFinish() {
+                                    Log.i("Done", "Count Down Timer Finished");
+                                    fluAlgorithm();
+                                    sleepapneaAlgorithm();
+                                    arrhythmiaAlgorithm();
+                                    asthmaAlgorithm();
+
+                                    if(invalid){
+                                        AlertDialog.Builder builder = new AlertDialog.Builder(oneStopService.this);
+                                        builder.setTitle("Unreliable Data");
+                                        builder.setMessage("Position the sensor properly, refresh and collect data again.");
+
+                                        // add the buttons
+                                        builder.setPositiveButton("Refresh", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                // do something ...
+                                                dialog.dismiss();
+                                                layout1.setVisibility(View.VISIBLE);
+                                                sensorDisplay.setVisibility(View.VISIBLE);
+                                                mDisplay.setVisibility(View.GONE);
+                                                collectData.setVisibility(View.VISIBLE);
+                                                sensorStatus.setVisibility(View.GONE);
+                                                dispResult.setVisibility(View.GONE);
+                                                shareResult.setVisibility(View.GONE);
+                                                arr_received.clear();
+                                                handShake = false;
+                                                diseaseKey = false;
+                                                sensorKeyBT = false;
+
+                                            }
+                                        });
+
+                                        builder.setNegativeButton("Proceed", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                // do something ...
+                                                dialog.dismiss();
+                                                layout1.setVisibility(View.GONE);
+                                                layoutIntro.setVisibility(View.GONE);
+                                                sensorStatus.setVisibility(View.GONE);
+                                                mDisplay.setVisibility(View.VISIBLE);
+                                                shareResult.setVisibility(View.VISIBLE);
+                                                dispResult.setVisibility(View.GONE);
+                                                fluScreening.setText("Symptomps-No");
+
+                                            }
+                                        });
+
+                                        // create and show the alert dialog
+                                        AlertDialog dialog = builder.create();
+                                        dialog.show();
+
+                                    }
+
+                                    else if (temperature > 100) {
+                                        LayoutInflater layoutInflater
+                                                = (LayoutInflater) getBaseContext()
+                                                .getSystemService(LAYOUT_INFLATER_SERVICE);
+                                        View popupView = layoutInflater.inflate(R.layout.flu_symp, null);
+                                        final PopupWindow popupWindow = new PopupWindow(
+                                                popupView,
+                                                ViewGroup.LayoutParams.WRAP_CONTENT,
+                                                ViewGroup.LayoutParams.WRAP_CONTENT);
+
+                                        Button btnDismiss = (Button) popupView.findViewById(R.id.dismiss);
+                                        ch1 = (CheckBox) popupView.findViewById(R.id.checkBox1);
+                                        ch2 = (CheckBox) popupView.findViewById(R.id.checkBox2);
+                                        btnDismiss.setOnClickListener(new Button.OnClickListener() {
+
+                                            @Override
+                                            public void onClick(View v) {
+                                                // TODO Auto-generated method stub
+                                                popupWindow.dismiss();
+                                                layout1.setVisibility(View.GONE);
+                                                layoutIntro.setVisibility(View.GONE);
+                                                sensorStatus.setVisibility(View.GONE);
+                                                mDisplay.setVisibility(View.VISIBLE);
+                                                shareResult.setVisibility(View.VISIBLE);
+                                                dispResult.setVisibility(View.GONE);
+                                                fluScreening.setText("Symptomps-Yes");
+
+                                            }
+                                        });
+
+                                        popupWindow.showAsDropDown(dispResult, 50, 30);
+                                    } else {
+
+                                        //test.setVisibility(View.GONE);
+                                        layout1.setVisibility(View.GONE);
+                                        layoutIntro.setVisibility(View.GONE);
+                                        sensorStatus.setVisibility(View.GONE);
+                                        mDisplay.setVisibility(View.VISIBLE);
+                                        shareResult.setVisibility(View.VISIBLE);
+                                        dispResult.setVisibility(View.GONE);
+                                        fluScreening.setText("Symptomps-No");
+                                    }
+
+                                    progressDialog2.dismiss();
 
                                 }
-                            });
+                            }.start();
 
-                            popupWindow.showAsDropDown(dispResult, 50, 30);
-                        }else {
 
-                            //test.setVisibility(View.GONE);
-                            layout1.setVisibility(View.GONE);
-                            layoutIntro.setVisibility(View.GONE);
-                            sensorStatus.setVisibility(View.GONE);
-                            mDisplay.setVisibility(View.VISIBLE);
-                            shareResult.setVisibility(View.VISIBLE);
-                            dispResult.setVisibility(View.GONE);
-                            fluScreening.setText("Symptomps-No");
-                        }
 
                     } else {
-                        Toast.makeText(getApplicationContext(), "Restart Scanner and Collect Data Again", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Restart Scanner, re-connect and Collect Data Again", Toast.LENGTH_LONG).show();
                     }
 
                 }
@@ -1015,6 +1131,12 @@ public class oneStopService extends AppCompatActivity {
         shareResult.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 {
+                    try {
+                        writeToLog("Share button clicked from OSS");
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
 
                     if(s.matches("")) {
                         Toast.makeText(getApplicationContext(), "Create Profile First ", Toast.LENGTH_LONG).show();
@@ -1040,7 +1162,11 @@ public class oneStopService extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onStop() {
+        super.onStop();
 
+    }
 
 
     public void fluAlgorithm()
@@ -1054,11 +1180,14 @@ public class oneStopService extends AppCompatActivity {
         float sum = 0.0f;
         float sum1 = 0.0f;
         float sum2 = 0.0f;
-        float avgValue = 0.0f;
-        float avgValue1 = 0.0f;
-        float avgValue2 = 0.0f;
-        float resultVoltage=0.0f;
-        double temperature=0.0f;
+        double avgValue = 0;
+        //float avgValue1 = 0.0f;
+        //float avgValue2 = 0.0f;
+        //float resultVoltage=0.0f;
+        double standardDev=1.0f;
+        double cVariation;
+        invalid= false;
+
 
 
 
@@ -1090,7 +1219,7 @@ public class oneStopService extends AppCompatActivity {
         arrow11.setVisibility(View.INVISIBLE);
 
         // display when there is no data
-        if (arr_received.size() == 0) {
+        if (arr_received.size() <100) {
             mDisplay.setVisibility(View.VISIBLE);
             Textv.setText("No Data");
             // Veoi.setText("No Data");
@@ -1116,13 +1245,13 @@ public class oneStopService extends AppCompatActivity {
                 }
             }*/
 
-
-           short value=arr_received.get(0);
-            for (int i=0;i<arr_received.size();i++)
-            {
-                short currentValue=arr_received.get(i);
-                value+=((currentValue - value)/10);
-                arr_processed1.add(i,value);
+            // data processing begin*****************************************************************
+            // moving average low pass filter
+            short value = arr_received.get(0);
+            for (int i = 0; i < arr_received.size(); i++) {
+                short currentValue = arr_received.get(i);
+                value += ((currentValue - value) / 10);
+                arr_processed1.add(i, value);
                 try {
                     writeToCsv(Integer.toString(value));
                 } catch (IOException e) {
@@ -1131,45 +1260,8 @@ public class oneStopService extends AppCompatActivity {
                 }
             }
 
-
-
-            // *****Feature 2 **********************************************************************
-            // step-1-find maxima
-
-            int max =arr_processed1.get(0);
-            for (int l=0;l<arr_processed1.size(); l++){
-                if(arr_processed1.get(l)> max){
-                    max = arr_processed1.get(l);
-                }
-            }
-            Log.i("feature21", "" + max);
-            // step-2-find maxima index
-
-            int indexOfMaxima=0;
-
-            for (int m=0; m<arr_processed1.size(); m++)
-
-            {
-                if (max==arr_processed1.get(m)){
-                    indexOfMaxima=m;
-                    break;
-                }
-            }
-
-            // step-3-find maxima level
-
-            float sumMaxima=0;
-            for (int n=indexOfMaxima-10; n<indexOfMaxima+10; n++)
-
-            {
-                sumMaxima+=arr_processed1.get(n);
-            }
-            float avgMaxima=sumMaxima/20;
-            Log.i("feature22", "" + avgMaxima);
-
-
-            // ****feature 3************************************************************************
-
+            // check data validity******************************************************************
+            boolean valid = true;
             // step-1-transfer to new array
 
             for (int q = 99; q < arr_processed1.size(); q++) {
@@ -1177,146 +1269,260 @@ public class oneStopService extends AppCompatActivity {
                 arr_trans.add(arr_processed1.get(q));
 
             }
+            // ******Feature 1 ********************************************************************
 
-            // step-2-find index of delay
-            int indexOfDelay=0;
-
-            for (int p=0; p<arr_trans.size(); p++)
-
-            {
-                if (((arr_trans.get(p))-2450)<5){
-                    indexOfDelay=p;
-                    break;
-                }
-            }
-            Log.i("feature3", "" + indexOfDelay);
-
-            // *****Feature 1 *********************************************************************
-
-            // step-1-find minima
-
-            int min =arr_trans.get(0);
-            for (int i=0;i<arr_trans.size(); i++){
-                if(arr_trans.get(i)< min){
-                    min = arr_trans.get(i);
-                }
-            }
-
-
-            // step-2-find minima index
-
-            int indexOfMinima=0;
-
-            for (int j=0; j<arr_trans.size(); j++)
-
-            {
-                if (min==arr_trans.get(j)){
-                    indexOfMinima=j;
-                    break;
-                }
-            }
-            Log.i("feature11", "" + min);
-
-            // step-3-find minima level
-
-            float sumMinima=0;
-            for (int k=indexOfMinima; k<indexOfMinima+10; k++)
-
-            {
-                sumMinima+=arr_trans.get(k);
-            }
-            float avgMinima=sumMinima/10;
-            Log.i("feature12", "" + avgMinima);
-
-            // ******Feature 4 ***********
-
-            for (int s = 0; s < arr_trans.size(); s++) {
+           /* for (int s = 0; s < arr_trans.size(); s++) {
                 sum += arr_trans.get(s);
             }
             avgValue = sum / arr_trans.size();
 
-            Log.i("feature4", "" + avgValue);
+            Log.i("feature1", "" + avgValue);
 
-            // ********** Multivariate regression **************************************************
-            // equation for temperature
-            temperature= 230.0-0.00142*avgMinima-0.04203*avgMaxima-0.21037*indexOfDelay;
+            // calculate standard deviation
+            double temp = 0;
 
-            double temp2=228.6-0.04243*avgMaxima-0.21267*indexOfDelay;
-            Log.i("temp", "" + temp2);
-            Log.i("sizer", "" + arr_received.size());
-            Log.i("sizet", "" + arr_trans.size());
-            Log.i("sizep", "" + arr_processed1.size());
+            for (int i = 0; i < arr_trans.size(); i++) {
+                int val = arr_trans.get(i);
 
-            try {
-                sTemperature = String.valueOf(new DecimalFormat("###.##").format(temperature));
-                ratingOfEOI = (temperature - 97) / 10;
-                if(ratingOfEOI<0){
-                    ratingOfEOI=0;
-                }else if(ratingOfEOI>1){
-                    ratingOfEOI=1;
-                }
-                sEOI = new DecimalFormat("##.##").format(ratingOfEOI);
-                sSeverity = new DecimalFormat("##.##").format(100 * ratingOfEOI);
+                // Step 2:
+                double squrDiffToMean = Math.pow(val - avgValue, 2);
 
-                if (temperature <= 97.5) {
-                    //prompt = "Normal Temperature";
-                    arrow1.setVisibility(View.VISIBLE);
-                    //sEOI="0.0";
-                    //sSeverity="0.0";
-                } else if (temperature <= 98.5) {
-                    //prompt = "Normal Temperature";
-                    arrow2.setVisibility(View.VISIBLE);
-                } else if (temperature <= 99.5) {
-                    //prompt = "Normal Temperature";
-                    arrow3.setVisibility(View.VISIBLE);
-                } else if (temperature <= 100.5) {
-                    //prompt = "Normal Temperature";
-                    arrow4.setVisibility(View.VISIBLE);
-                } else if (temperature <= 101.5) {
-                    //prompt = "Low Fever,\nconsider consulting your doctor";
-                    arrow5.setVisibility(View.VISIBLE);
-                } else if (temperature <= 102.5) {
-                    //prompt = "Medium Fever,\nConsult your doctor";
-                    arrow6.setVisibility(View.VISIBLE);
-                } else if (temperature <= 103.5) {
-                    //prompt = "High Fever,\nConsult your doctor";
-                    arrow7.setVisibility(View.VISIBLE);
-                } else if (temperature <= 104.5) {
-                    //prompt = "High Fever,\nConsult your doctor";
-                    arrow8.setVisibility(View.VISIBLE);
-                } else if (temperature <= 105.5) {
-                    //prompt = "Very High Fever,\nConsult your doctor immediately";
-                    arrow9.setVisibility(View.VISIBLE);
-                } else if (temperature <= 106.5) {
-                    //prompt = "Very High Fever,\nConsult your doctor immediately";
-                    arrow10.setVisibility(View.VISIBLE);
-                } else if (temperature >= 106.5) {
-                    //prompt = "Extremely High Fever,\nConsult your doctor immediately";
-                    arrow11.setVisibility(View.VISIBLE);
-                }
-            } catch (NumberFormatException e) {
-
-                //prompt = "Invalid Data";
-                gradientFlu.setVisibility(View.INVISIBLE);
+                // Step 3:
+                temp += squrDiffToMean;
             }
 
+            // Step 4:
+            double meanOfDiffs = (double) temp / (double) (arr_trans.size());
+
+            // Step 5:
+            standardDev = Math.sqrt(meanOfDiffs);
+            // calculate coefficient of variation
+            if (standardDev != 0) {
+                cVariation = avgValue / standardDev;
+            }*/
+
+            // Compare Coefficient of variation value here
+
+
+            if (valid) {
+                // *****Feature 2 **********************************************************************
+                // step-1-find maxima
+
+                int max = arr_processed1.get(0);
+                for (int j = 0; j < arr_processed1.size(); j++) {
+                    if (arr_processed1.get(j) > max) {
+                        max = arr_processed1.get(j);
+                    }
+                }
+                Log.i("feature21", "" + max);
+                // step-2-find maxima index
+
+                int indexOfMaxima = 0;
+
+                for (int m = 0; m < arr_processed1.size(); m++)
+
+                {
+                    if (max == arr_processed1.get(m)) {
+                        indexOfMaxima = m;
+                        break;
+                    }
+                }
+
+                // step-3-find maxima level
+
+                float sumMaxima = 0;
+                float avgMaxima;
+
+                if ((indexOfMaxima > 10)&&(indexOfMaxima<590)) {
+                    for (int n = indexOfMaxima - 10; n < indexOfMaxima + 10; n++)
+
+                    {
+                        sumMaxima += arr_processed1.get(n);
+                    }
+                    avgMaxima = sumMaxima / 20;
+                    Log.i("feature22", "" + avgMaxima);
+                } else {
+                    avgMaxima = max;
+                }
+
+                // ****feature 3************************************************************************
+
+                // find index of delay
+                int indexOfDelay = 0;
+                Log.i("feature3", "" + indexOfDelay);
+
+                for (int p = 0; p < arr_trans.size(); p++)
+
+                {
+                    Log.i("DelayVal",""+arr_trans.get(p));
+                    if (Math.abs((arr_trans.get(p)) - 2450) < 10) {
+                        indexOfDelay = p;
+                        break;
+                    }else if(Math.abs((arr_trans.get(p)) - 2450) < 20){
+                        indexOfDelay = p;
+                        break;
+                    }
+                }
+
+                Log.i("feature3", "" + indexOfDelay);
+
+                if((indexOfDelay<30)||(indexOfDelay>250)){
+                    Toast.makeText(getApplicationContext(), "Unreliable data", Toast.LENGTH_LONG).show();
+                    invalid=true;
+                }
+
+                // *****Feature 4 *********************************************************************
+
+                // step-1-find minima
+
+                int min = arr_trans.get(0);
+                for (int i = 0; i < arr_trans.size(); i++) {
+                    if (arr_trans.get(i) < min) {
+                        min = arr_trans.get(i);
+                    }
+                }
+
+
+                // step-2-find minima index
+
+                int indexOfMinima = 0;
+
+                for (int j = 0; j < arr_trans.size(); j++)
+
+                {
+                    if (min == arr_trans.get(j)) {
+                        indexOfMinima = j;
+                        break;
+                    }
+                }
+                Log.i("feature41", "" + min);
+
+                // step-3-find minima level
+
+                float sumMinima = 0;
+                float avgMinima;
+                if (indexOfMinima < 580) {
+                    for (int k = indexOfMinima; k < indexOfMinima + 20; k++)
+
+                    {
+                        sumMinima += arr_trans.get(k);
+                    }
+                    avgMinima = sumMinima / 20;
+                    Log.i("feature42", "" + avgMinima);
+                } else {
+                    avgMinima = min;
+                }
+
+                // default value for invalid data
+                if((avgMaxima-avgMinima)<300){
+                    /*avgMaxima=2800;
+                    avgMinima=2200;
+                    indexOfDelay=100;*/
+                    Toast.makeText(getApplicationContext(), "Unreliable data", Toast.LENGTH_LONG).show();
+                    invalid=true;
+
+                }else{
+
+                // ********** Multivariate regression **************************************************
+                // equation for temperature
+                temperature = 230.0 - 0.00142 * avgMinima - 0.04203 * avgMaxima - 0.21037 * indexOfDelay;
+
+                double temp2 = 228.6 - 0.04243 * avgMaxima - 0.21267 * indexOfDelay;
+
+                Log.i("temp", "" + temp2);
+                Log.i("sizer", "" + arr_received.size());
+                Log.i("sizet", "" + arr_trans.size());
+                Log.i("sizep", "" + arr_processed1.size());
+
+                try {
+                    sTemperature = String.valueOf(new DecimalFormat("###.##").format(temperature));
+                    ratingOfEOI = (temperature - 97) / 10;
+
+                    if (ratingOfEOI < 0) {
+                        ratingOfEOI = 0;
+                    } else if (ratingOfEOI > 1) {
+                        ratingOfEOI = 1;
+                    }
+                    sEOI = new DecimalFormat("##.##").format(ratingOfEOI);
+                    sSeverity = new DecimalFormat("##.##").format(100 * ratingOfEOI);
+
+                    if (temperature <= 97.5) {
+                        //prompt = "Normal Temperature";
+                        arrow1.setVisibility(View.VISIBLE);
+                        //sEOI="0.0";
+                        //sSeverity="0.0";
+                    } else if (temperature <= 98.5) {
+                        //prompt = "Normal Temperature";
+                        arrow2.setVisibility(View.VISIBLE);
+                    } else if (temperature <= 99.5) {
+                        //prompt = "Normal Temperature";
+                        arrow3.setVisibility(View.VISIBLE);
+                    } else if (temperature <= 100.5) {
+                        //prompt = "Normal Temperature";
+                        arrow4.setVisibility(View.VISIBLE);
+                    } else if (temperature <= 101.5) {
+                        //prompt = "Low Fever,\nconsider consulting your doctor";
+                        arrow5.setVisibility(View.VISIBLE);
+                    } else if (temperature <= 102.5) {
+                        //prompt = "Medium Fever,\nConsult your doctor";
+                        arrow6.setVisibility(View.VISIBLE);
+                    } else if (temperature <= 103.5) {
+                        //prompt = "High Fever,\nConsult your doctor";
+                        arrow7.setVisibility(View.VISIBLE);
+                    } else if (temperature <= 104.5) {
+                        //prompt = "High Fever,\nConsult your doctor";
+                        arrow8.setVisibility(View.VISIBLE);
+                    } else if (temperature <= 105.5) {
+                        //prompt = "Very High Fever,\nConsult your doctor immediately";
+                        arrow9.setVisibility(View.VISIBLE);
+                    } else if (temperature <= 106.5) {
+                        //prompt = "Very High Fever,\nConsult your doctor immediately";
+                        arrow10.setVisibility(View.VISIBLE);
+                    } else if (temperature >= 106.5) {
+                        //prompt = "Extremely High Fever,\nConsult your doctor immediately";
+                        arrow11.setVisibility(View.VISIBLE);
+                    }
+                } catch (NumberFormatException e) {
+
+                    //prompt = "Invalid Data";
+                    gradientFlu.setVisibility(View.INVISIBLE);
+                }
 
 
 //------ displaying result
 
-            //Vdatetime.setText(currentDateTime);
+                    //Vdatetime.setText(currentDateTime);
+                    if (temperature < 70) {
+                        Textv.setText("Low");
+                    } else if (temperature > 107) {
+                        Textv.setText("High");
+                    } else {
+                        //Textv.append(sTemperature+"°F");
+                        Textv.setText(String.format("%.1f", temperature) + "°F");
+                    }
+                    eoiValue = String.format("%.2f", ratingOfEOI);
 
-            //Textv.append(sTemperature+"°F");
-            Textv.setText(String.format("%.1f",temperature)+"°F");
-
-            eoiValue=String.format("%.2f",ratingOfEOI);
-            severityView.setText(sSeverity);
+                    if (!invalid) {
+                        severityView.setText(sSeverity);
+                    }
 
 
-            //Vprompt.append(prompt );
-            //Veoi.append("fluSeverity(100) = " + result);
+  // Sending automated sms
+                  if(ratingOfEOI>.8) {
+                      String messageToSend = "EOI:" + eoiValue;
+                      //String number = "9018340057";
+                      String number = "9013358292";
 
-            //Veoi.append( result);
+                      SmsManager.getDefault().sendTextMessage(number, null, messageToSend, null, null);
+                  }
+
+                //Vprompt.append(prompt );
+                //Veoi.append("fluSeverity(100) = " + result);
+
+                //Veoi.append( result);
+            }}else{
+                Textv.setText("Invalid Data");
+            }
         }
 
         // end temperature processing
@@ -1325,7 +1531,7 @@ public class oneStopService extends AppCompatActivity {
         arr_trans.clear();
         arr_processed1.clear();
         arr_processed2.clear();
-        fileSeq++;
+
         timeKeyBT = false;
         diseaseKey = false;
         sensorKeyBT = false;
@@ -1352,11 +1558,35 @@ public class oneStopService extends AppCompatActivity {
         // do the severity ranking here
     }
 
+    //write to log file
+    public void writeToLog(String x) throws IOException {
+
+        Calendar c = Calendar.getInstance();
+        File folder = new File(Environment.getExternalStorageDirectory() + "/SCChealth");
+        boolean success = true;
+        if (!folder.exists()) {
+            success = folder.mkdir();
+        }
+        if (success) {
+            // Do something on success
+            String fileName = "EventLog" + ".csv";
+            String csv = "/storage/emulated/0/SCChealth/"+fileName;
+            FileWriter file_writer = new FileWriter(csv, true);
+            String s = c.get(Calendar.YEAR) + "," + (c.get(Calendar.MONTH) + 1) + "," + c.get(Calendar.DATE) + "," + c.get(Calendar.HOUR) + "," + c.get(Calendar.MINUTE) + "," + c.get(Calendar.SECOND) + "," + c.get(Calendar.MILLISECOND) + "," + x + "\n";
+
+            file_writer.append(s);
+            file_writer.close();
+
+
+        }
+    }
+
+
     //write to csv file
     public void writeToCsv(String x) throws IOException {
 
         Calendar c = Calendar.getInstance();
-        File folder = new File(Environment.getExternalStorageDirectory() + "/project");
+        File folder = new File(Environment.getExternalStorageDirectory() + "/SCChealth");
         boolean success = true;
         if (!folder.exists()) {
             success = folder.mkdir();
@@ -1364,11 +1594,11 @@ public class oneStopService extends AppCompatActivity {
         if (success) {
             // Do something on success
             //String fileName = "flu" + String.valueOf(currentDateTime) + ".csv";
-
+            String sensorType="TP";
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm", Locale.US);
             Date now = new Date();
-            String fileName = fileSeq+formatter.format(now)+ ".csv";
-            String csv = "/storage/emulated/0/project/"+fileName;
+            String fileName = sensorType+formatter.format(now)+"_"+fileSeq+ ".csv";
+            String csv = "/storage/emulated/0/SCChealth/"+fileName;
             FileWriter file_writer = new FileWriter(csv, true);
             String s = c.get(Calendar.YEAR) + "," + (c.get(Calendar.MONTH) + 1) + "," + c.get(Calendar.DATE) + "," + c.get(Calendar.HOUR) + "," + c.get(Calendar.MINUTE) + "," + c.get(Calendar.SECOND) + "," + c.get(Calendar.MILLISECOND) + "," + x + "\n";
 

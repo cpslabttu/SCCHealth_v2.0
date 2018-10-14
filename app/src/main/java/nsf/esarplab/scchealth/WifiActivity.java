@@ -55,7 +55,7 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
 
     // String url="https://10.100.94.221.000webhostapp.com/insertjsondb.php";
 
-    String url="http://sscmemphis.com/insertjsondb.php";
+    String url="http://sccmobilehealth.com/insertjsondb.php";
 
     public static String POST(String url, Person person)
     {

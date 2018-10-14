@@ -125,12 +125,12 @@ public class HomeActivity extends AppCompatActivity {
             // The code in this method will be executed when the profile category is clicked on.
             @Override
             public void onClick(View view) {
-                Uri uri = Uri.parse("http://sscmemphis.com"); // missing 'http://' will cause crashed
+                Uri uri = Uri.parse("http://sccmobilehealth.com"); // missing 'http://' will cause crashed
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
             }
         });
-
+        //http://sccmobilehealth.com/insertjsondb.php
         // manage switch position based on connection status
         if (bluetooth.isEnabled()){
             btSwitch.setChecked(true);

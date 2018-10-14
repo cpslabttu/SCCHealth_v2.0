@@ -13,7 +13,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="30dp"
-            android:text="Contact for technical issues:\n\nBashir I. Morshed, Ph.D.\nAssistant Professor\nElectrical and Computer Engineering\nThe University of Memphis\nEmail: bmorshed@memphis.edu\nPhone: 901.6780.3650"/>
+            android:text="Contact for technical issues:\n\nBashir I. Morshed, Ph.D.\nAssociate Professor\nElectrical and Computer Engineering\nThe University of Memphis\nEmail: bmorshed@memphis.edu\nPhone: 901.6780.3650"/>
 
     </LinearLayout>
 

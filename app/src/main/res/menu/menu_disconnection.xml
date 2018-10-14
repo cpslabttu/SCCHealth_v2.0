@@ -30,6 +30,10 @@
         android:title="Send to Doctor"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_email"
+        android:title="email to Physician"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_algorithm"
         android:title="Method"
         app:showAsAction="never" />
