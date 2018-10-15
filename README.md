@@ -5,4 +5,5 @@ Please visit Lab website at http://www.memphis.edu/esarp/
 If using this project files, please cite:
 
 M. J. Rahman and B. I. Morshed, "Improving Accuracy of Inkjet Printed Core Body WRAP Temperature Sensor Using Random Forest Regression Implemented with an Android App", Special session: Wearable, Implants, and Body-Area Networks (BK), National Radio Science Meeting, Boulder, CO, Jan. 9-12, 2019.
+
 B. I. Morshed, B. Harmon, M. S. Zaman, M. J. Rahman, S. Afroz, and M. Rahman, "Inkjet Printed Fully-passive Body-worn Wireless Sensors for Smart and Connected Community (SCC)", J. Low Power Electron. Appl., vol. 7, no. 4, article 26, pp. 1-21, Nov. 2017.
